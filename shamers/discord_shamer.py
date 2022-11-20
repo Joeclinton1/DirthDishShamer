@@ -3,7 +3,9 @@ import discord
 import threading
 from discord.ext import tasks
 from dotenv import load_dotenv
+import numpy as np
 import cv2
+from io import BytesIO
 
 # Two exports: DishDetector and DishDetectorBlocking
 # both can be used as constructors for the DishDetector class
@@ -47,14 +49,23 @@ class DishDetector(discord.Client):
     @tasks.loop(seconds=1)
     async def send_loop(self):
         if len(self.msg_queue) > 0:
-            txt = self.msg_queue.pop(0)
-            await self.channel.send(txt)
+            txt, f, e = self.msg_queue.pop(0)
+            await self.channel.send(txt, file=f, embed=e)
 
     def shame(self, image, name):
-        if name != None:
-            self.msg_queue.append("SHAME! Shame upon <@{}>".format(people_to_shame[name]))
+        s, i = cv2.imencode(".png", image)
+        if s:
+            i = np.array(i).tobytes()
+            i = BytesIO(i)
+            f = discord.File(i, filename="shameful_one.png")
+            e = discord.Embed()
+            e.set_image(url="attachment://shameful_one.png")
         else:
-            self.msg_queue.append("SHAME! Shame upon you!")
+            f = e = None
+        if name != None and name != "Unknown":
+            self.msg_queue.append(("SHAME! Shame upon <@{}> for leaving their dishes out!".format(people_to_shame[name]), f, e))
+        else:
+            self.msg_queue.append(("SHAME! Shame upon you for leaving your dishes out!", f, e))
 
 def DishDetectorBlocking(token, *args, **kwargs):
     cl = DishDetector(token, *args, **kwargs)
@@ -71,4 +82,4 @@ if __name__=="__main__":
     while True:
         # The main loop goes here
         txt = input(">")
-        cl.msg_queue.append(txt)
+        cl.msg_queue.append((txt, None, None))
