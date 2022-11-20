@@ -1,7 +1,5 @@
 import cv2
 import pandas as pd
-from ML import objrec
-from ML.facerec import FaceRec
 import numpy as np
 from skimage.metrics import structural_similarity
 
