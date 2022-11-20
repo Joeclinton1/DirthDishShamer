@@ -1,125 +1,97 @@
 import cv2
 import pandas as pd
 from ML import objrec
-from ML.facerec import face_rec
+from ML.facerec import FaceRec
+import numpy as np
+from skimage.metrics import structural_similarity
 
-#model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+
+# model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
 # # model.load_weights("weightdirectory")
 # # weights = ResNet50_Weights.DEFAULT
 # # model = resnet50(weights=weights)
 
-def crop(img, coords):
+
+def crop(img, bbox):
     # x1, x2, y1, y2 = bbox[0], bbox[2], bbox[1], bbox[3]
-    img = img[coords[1]:coords[3], coords[0]:coords[2]]
+    img = img[bbox[1]:bbox[3], bbox[0]:bbox[2]]
     return img
 
-class Person:
-    def __init__(self, name, discordID):
-        self.name = name
-        self.id = discordID
 
-
-
-class Human:
-    def __init__(self, xmin, ymin, xmax, ymax, i):
-        self.location = (xmin, ymin, xmax, ymax)
-        self.identity = None
-        self.dishes = []
-        self.lifetime = 0
-        self.deathtime = -1
-        self.prev_index = i
-
-    def enter(self):
-        pass
-
-    def stay(self):
-        pass
-
-    def leave(self):
-        pass
-
-    def enter(self, ):
-
-
-class Dish:
-    def __init__(self, xmin, ymin, xmax, ymax, i):
-        self.location = (xmin, ymin, xmax, ymax)
-        self.bringer = None
-        self.lifetime = 0
-        self.deathtime = -1
-        self.prev_index = i
-
-    def enter(self):
-        pass
-
-    def stay(self):
-        pass
-
-    def leave(self):
-        pass
-
-def attempt_ID(image, human):
-    local = human.location
-    img_crop = crop(image, local)
-    out = objrec.rec_objs(img_crop)
-    df = out.pandas().xyxy[0]
-    for row in df.values:
-        if row[-1]=="person" and row[-3] > 0.7:
-            face_name = face_rec(img_crop)
-            if face_name != "unknown":
-                human.name = face_name
-
-def get_similarity(obj, img1, objs, img2):
-    #set weights
+def get_similarity(dish, dishes2):
+    # set weights
     w1, w2, w3 = 0.5, 0.3, 0.2
 
-    similarity = [0]*objs.shape[1]
-    for i,obj2 in enumerate(objs):
-        #calc similarity
-        bboxs = [get_bbox_from_df(df) for df in [obj,obj2]]
-        pos1, pos2 = [((bb[0] + bb[1]) / 2, (bb[2] + bb[3]) / 2) for bb in bboxs]
-        area1, area2 = [(bb[1]-bb[0])*(bb[3]-bb[2]) for bb in bboxs]
-        ssim = structural_similarity(crop(img1, bboxs[0]), crop(img2, bboxs[1]))
-        max_pos= (img1.shape[1]**2+img1.shape[2])**0.5
-        max_area= img1.shape[0]*img1.shape[1]
+    similarity = [0] * dishes2.shape[1]
+    for i, dish2 in enumerate(dishes2):
+        # calc similarity
+        pos1, pos2 = [d.pos for d in [dish, dish2]]
+        area1, area2 = [d.area for d in [dish, dish2]]
+        ssim = structural_similarity(dish.img, dish2.img)
+        max_pos = (dish.img.shape[1] ** 2 + dish2.img.shape[2]) ** 0.5
+        max_area = dish.img.shape[0] * dish2.img.shape[1]
         max_ssim = 1
 
-        diff = (pos2-pos1)/max_pos*w1+(area2-area1)/max_area*w2+(1-ssim/max_ssim)*w3
-        similarity[i] = 1-diff/(w1+w2+w3)
+        diff = (pos2 - pos1) / max_pos * w1 + (area2 - area1) / max_area * w2 + (1 - ssim / max_ssim) * w3
+        similarity[i] = 1 - diff / (w1 + w2 + w3)
     return similarity
 
 
+def obj_in_table_region(obj, table):
+    return cv2.pointPolygonTest(table, obj.pos, False)
+
+
+def extract_table_contour(frame):
+    img_grey = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    thresh = 100
+    ret, thresh_img = cv2.threshold(img_grey, thresh, 255, cv2.THRESH_BINARY)
+    contours, hierarchy = cv2.findContours(thresh_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    return contours
+
+
+class Obj():
+    def __init__(self, bbox, frame_img):
+        self.bbox = bbox
+        self.img = crop(frame_img, bbox)
+        self.limbo = 0
+        self.pos = (bbox[0] + bbox[1]) / 2, (bbox[1] + bbox[2]) / 2
+        self.area = (bbox[1] - bbox[0]) * (bbox[3] - bbox[2])
+
+
 class World():
-    def __init__(self):
-        self.objects = set()
-        # might have to fill these with the actual values of the first frame
-        self.prev_frame_df = pd.DataFrame(columns=["xmin","ymin","xmax","ymax","confidence","class","name"])
-        self.prev_frame_img = None
+    def __init__(self, frame):
+        self.dishes = []
+        self.past_dishes = []
+        self.sim_thresh = 0.8
+        self.table = extract_table_contour(frame)
 
-    def new_frame(self, frame_df: pd.DataFrame, frame_img):
-        pairs = get_similarity(self.prev_frame_df, self.prev_frame_img, frame_df, frame_img)
-        for (i,j) in pairs:
-            if i is None:
-                # Enter
-                if frame_df[j, "name"] == "person":
-                    # TODO find the relevant Human item (if this is a repeat person)
-                    pass
+    def new_frame(self, objs: pd.DataFrame, frame_img):
+        dishes_df = objs[objs["class"] != 0]
+
+        # increment limbo for all dishes
+        # remove the dish if it has been in limbo for 3 or more frames
+        for dish in self.dishes:
+            dish.limbo += 1
+            if dish.limbo >= 3:
+                del dish
+
+        for dish_df in dishes_df:
+            dish_bbox = [dish_df["x-min"], dish_df["x-max"], dish_df["y_min"], dish_df["y_max"]]
+            dish = Obj(dish_bbox, frame_img)
+            if not obj_in_table_region(dish, self.table):
+                continue
+
+            for dishes2 in self.past_dishes:
+                sim_vals, dish_ids = get_similarity(dish, dishes2)
+                max_sim_idx = np.argmax(sim_vals)
+
+                if sim_vals[max_sim_idx] > self.sim_thresh:
+                    dish.limbo = 0
+                    break
                 else:
-                    # TODO find the relevant Dish item (if this is a repeat dish)
-                    pass
-            elif j is None:
-                # Leave
-                for o in self.objects:
-                    if o.prev_index == i:
-                        o.leave()
-                        break
-            else:
-                # Stay
-                for o in self.objects:
-                    if o.prev_index == i:
-                        o.stay(frame_img)
-                        break
+                    self.dishes.append(dish)
+                    return True
 
-
-
-
+            self.past_dishes.pop(0)
+            self.past_dishes.append(self.dishes)
+        return False

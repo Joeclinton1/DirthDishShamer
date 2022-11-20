@@ -3,17 +3,20 @@ from shamers import discord_shamer, audio_shamer
 from logic import World
 from dotenv import load_dotenv
 import cv2
-import torch
-import torchvision
+
 
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
 discord_bot = discord_shamer.DishDetectorBlocking(DISCORD_TOKEN)
-world = World()
-
+facerec = FaceRec()
 # start main loop
 video_capture = cv2.VideoCapture(0)
+
+# Grab first frame inorder to get the table
+ret, frame = video_capture.read()
+world = World()
+
 count = 0
 while True:
     # Grab a single frame of video
@@ -26,11 +29,17 @@ while True:
     # count += 1
 
     # update world state
-    shameful_people = world.new_frame(obj_df, frame)
+    is_dirty_dish_placed = world.new_frame(obj_df, frame)
 
-    # shame the shameful
-    audio_shamer.shame()
-    discord_bot.shame()
+    if is_dirty_dish_placed:
+        # get name of shameful
+        people_df = obj_df[obj_df["class"] == 0]
+        bbox = [people_df["x-min"], people_df["x-max"], people_df["y_min"], people_df["y_max"]]
+        face_name = facerec.face_rec(frame[bbox[1]:bbox[3], bbox[0]:bbox[2]])
+
+        # shame the shameful
+        audio_shamer.shame()
+        discord_bot.shame()
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
