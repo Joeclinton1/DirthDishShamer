@@ -1,0 +1,4 @@
+bowl
+cup
+glass
+plate
