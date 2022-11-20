@@ -9,6 +9,9 @@ from ML.facerec import FaceRec
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
+# discord_bot = discord_shamer.DishDetectorBlocking(DISCORD_TOKEN)
+audio_shamer = audio_shamer.AudioShamer()
+
 discord_bot = discord_shamer.DishDetectorBlocking(DISCORD_TOKEN)
 facerec = FaceRec()
 objrec = ObjectDetector()
@@ -54,7 +57,7 @@ while True:
         # shame the shameful
         # print("SHAME! SHAME UPON", face_name)
         discord_bot.shame(frame, face_name)
-        audio_shamer.shame(frame, face_name)
+        audio_shamer.shame()
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break

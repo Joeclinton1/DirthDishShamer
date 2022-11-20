@@ -2,10 +2,12 @@ import pyttsx3
 import random
 
 
-def shame(img, name):
-    voice = [0, 1]
-    engine = pyttsx3.init()
-    voice = random.choice(engine.getProperty('voices'))
-    engine.setProperty('voice', voice)
-    engine.say(f"Shame! Shame! Dishes still remain!")
-    engine.runAndWait()
+class AudioShamer():
+    def __init__(self):
+        self.engine = pyttsx3.init()
+
+    def shame(self):
+        voice = random.choice(self.engine.getProperty('voices'))
+        self.engine.setProperty('voice', voice)
+        self.engine.say("Shame! Shame! Dishes still remain!")
+        self.engine.runAndWait()
