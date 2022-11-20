@@ -2,8 +2,8 @@
 # import torch
 # import torchvision
 import pandas as pd
-import objrec
-from facerec import face_rec
+from ML import objrec
+from ML.facerec import face_rec
 
 #model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
 # # model.load_weights("weightdirectory")
