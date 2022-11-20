@@ -1,0 +1,5 @@
+classes=5
+train=data/datasets/train.txt
+valid=data/datasets/val.txt
+names=config/coco.names
+backup=backup/
