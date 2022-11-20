@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 from skimage.metrics import structural_similarity
 
+TBL_THRESHOLD = 300
+
 def crop(img, bbox):
     # x1, x2, y1, y2 = bbox[0], bbox[2], bbox[1], bbox[3]
     img = img[bbox[2]:bbox[3], bbox[0]:bbox[1]]
@@ -28,8 +30,15 @@ def get_similarity(dish, dishes2):
     return similarity
 
 
-def obj_in_table_region(obj, table):
-    return cv2.pointPolygonTest(table, obj.pos, False)
+def obj_in_table_region(obj, table, simple=False):
+    if simple:
+        if obj.pos[1] > TBL_THRESHOLD:
+            print("In table")
+        else:
+            print("Not in table")
+        return obj.pos[1] > TBL_THRESHOLD
+    else:
+        return cv2.pointPolygonTest(table, obj.pos, False)
 
 
 def extract_table_contour(frame):
@@ -45,7 +54,7 @@ class Obj():
         self.bbox = bbox
         self.img = crop(frame_img, bbox)
         self.limbo = 0
-        self.pos = (bbox[0] + bbox[1]) / 2, (bbox[1] + bbox[2]) / 2
+        self.pos = (bbox[0] + bbox[1]) / 2, (bbox[2] + bbox[3]) / 2
         self.area = (bbox[1] - bbox[0]) * (bbox[3] - bbox[2])
 
 
