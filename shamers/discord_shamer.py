@@ -3,6 +3,7 @@ import discord
 import threading
 from discord.ext import tasks
 from dotenv import load_dotenv
+import cv2
 
 # Two exports: DishDetector and DishDetectorBlocking
 # both can be used as constructors for the DishDetector class
@@ -13,9 +14,11 @@ from dotenv import load_dotenv
 # TODO get these in a non-hard-coded way
 SERVER_TARGET = 1043610399465029713
 CHANNEL_TARGET = 1043619041207660668
-USER_TARGET = 187570697290252288
-JOSH = 460814426572980245
-CLINTON = 499882945281261588
+people_to_shame = {
+    "josh":460814426572980245,
+    "joec":499882945281261588,
+    "joes":187570697290252288
+}
 
 
 class DishDetector(discord.Client):
@@ -47,9 +50,11 @@ class DishDetector(discord.Client):
             txt = self.msg_queue.pop(0)
             await self.channel.send(txt)
 
-    def shame(self):
-        self.msg_queue.append("Shame, Shame, Shame")
-
+    def shame(self, image, name):
+        if name != None:
+            self.msg_queue.append("SHAME! Shame upon <@{}>".format(people_to_shame[name]))
+        else:
+            self.msg_queue.append("SHAME! Shame upon you!")
 
 def DishDetectorBlocking(token, *args, **kwargs):
     cl = DishDetector(token, *args, **kwargs)
