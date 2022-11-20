@@ -10,6 +10,8 @@ from ML.facerec import FaceRec
 # DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
 # discord_bot = discord_shamer.DishDetectorBlocking(DISCORD_TOKEN)
+audio_shamer = audio_shamer.AudioShamer()
+
 facerec = FaceRec()
 objrec = ObjectDetector()
 # start main loop
