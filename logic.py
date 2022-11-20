@@ -84,15 +84,16 @@ def object_leave_frame(obj):
 
 class World():
     def __init__(self):
-        self.humans = []
-        self.dishes = []
-        self.prev_frame = pd.DataFrame(columns=["xmin","ymin","xmax","ymax","confidence","class","name"])
+        self.humans = set()
+        self.dishes = set()
+        # might have to fill these with the actual values of the first frame
+        self.prev_frame_df = pd.DataFrame(columns=["xmin","ymin","xmax","ymax","confidence","class","name"])
+        self.prev_frame_img = None
 
-    def new_frame(self, frame: pd.DataFrame):
-        for person in frame.loc[frame["name"] == "person"]:
-            pass
-        for dish in frame.loc[frame["name"] != "person"]:
-            pass
+    def new_frame(self, frame_df: pd.DataFrame, frame_img):
+        # get the similarity data
+        pass
+        
 
 def per_frame(frame: pd.DataFrame, prev_state):
 
