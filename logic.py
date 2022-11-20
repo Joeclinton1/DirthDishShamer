@@ -2,11 +2,18 @@
 # import torch
 # import torchvision
 import pandas as pd
+import objrec
+from facerec import face_rec
 
-# model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+#model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
 # # model.load_weights("weightdirectory")
 # # weights = ResNet50_Weights.DEFAULT
 # # model = resnet50(weights=weights)
+
+def crop(img, coords):
+    # x1, x2, y1, y2 = bbox[0], bbox[2], bbox[1], bbox[3]
+    img = img[coords[1]:coords[3], coords[0]:coords[2]]
+    return img
 
 class Person:
     def __init__(self, name, discordID):
@@ -28,9 +35,16 @@ class Dish:
         self.lifetime = 0
         self.deathtime = -1
 
-def attempt_ID(human):
-    # We've found a person in the image and cropped it down to just them, now pass it to the face recogniser
-    pass
+def attempt_ID(image, human):
+    local = human.location
+    img_crop = crop(image, local)
+    out = objrec.rec_objs(img_crop)
+    df = out.pandas().xyxy[0]
+    for row in df.values:
+        if row[-1]=="person" and row[-3] > 0.7:
+            face_name = face_rec(img_crop)
+            if face_name != "unknown":
+                human.name = face_name
 
 def distance(obj1, obj2):
     pass
