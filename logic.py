@@ -14,99 +14,78 @@ class Person:
         self.id = discordID
 
 class Human:
-    def __init__(self, xmin, ymin, xmax, ymax):
+    def __init__(self, xmin, ymin, xmax, ymax, i):
         self.location = (xmin, ymin, xmax, ymax)
         self.identity = None
         self.dishes = []
         self.lifetime = 0
         self.deathtime = -1
+        self.prev_index = i
+
+    def enter(self):
+        pass
+
+    def stay(self):
+        pass
+
+    def leave(self):
+        pass
 
 class Dish:
-    def __init__(self, xmin, ymin, xmax, ymax):
+    def __init__(self, xmin, ymin, xmax, ymax, i):
         self.location = (xmin, ymin, xmax, ymax)
         self.bringer = None
         self.lifetime = 0
         self.deathtime = -1
+        self.prev_index = i
+
+    def enter(self):
+        pass
+
+    def stay(self):
+        pass
+
+    def leave(self):
+        pass
 
 def attempt_ID(human):
     # We've found a person in the image and cropped it down to just them, now pass it to the face recogniser
     pass
 
-def distance(obj1, obj2):
+def get_similarity(df1, img1, df2, img2):
+    # dummy function for Clinton's method
     pass
-
-def get_nearest(obj, obj_list):
-    min_dist = float("inf")
-    closest = None
-    for i in obj_list:
-        # IRL we should replace the distance measures with a proper one
-        d = distance(i, obj)
-        if d < min_dist:
-            min_dist = d
-            closest = i
-    return closest, min_dist
-
-unowned_dishes = []
-dishes_in_frame = []
-humans_in_frame = []
-timers = []
-
-def object_enter_frame(obj):
-    if isinstance(obj, Human):
-        humans_in_frame.append(obj)
-        attempt_ID(obj)
-        for dish in unowned_dishes:
-            obj.dishes.append(dish)
-            dish.bringer = obj
-
-    if isinstance(obj, Dish):
-        dishes_in_frame.append(obj)
-        if len(humans_in_frame) == 0:
-            unowned_dishes.append(obj)
-        else:
-            h = get_nearest(obj, humans_in_frame)
-            obj.bringer = h
-            h.dishes.append(obj)
-
-def object_leave_frame(obj):
-    if isinstance(obj, Human):
-        for dish in obj.dishes:
-            timers.append((dish, 5)) # 5 is the number of frames before we declare the dish abandoned
-        humans_in_frame.remove(obj)
-    
-    if isinstance(obj, Dish):
-        if obj.bringer is None:
-            unowned_dishes.remove(obj)
-        else:
-            obj.bringer.dishes.remove(obj)
-        dishes_in_frame.remove(obj)
-
 
 class World():
     def __init__(self):
-        self.humans = set()
-        self.dishes = set()
+        self.objects = set()
         # might have to fill these with the actual values of the first frame
         self.prev_frame_df = pd.DataFrame(columns=["xmin","ymin","xmax","ymax","confidence","class","name"])
         self.prev_frame_img = None
 
     def new_frame(self, frame_df: pd.DataFrame, frame_img):
-        # get the similarity data
-        pass
-        
-
-def per_frame(frame: pd.DataFrame, prev_state):
-
-    for h in humans_in_frame:
-        if h.id is None:
-            attempt_ID(h)
-
-    for _ in range(len(timers)):
-        d,t = timers.pop(0)
-        if t == 0 and d in dishes_in_frame:
-            print("Shame! Shame! Shame!", d.bringer.id.name, "left a dirty dish on the counter!")
-        else:
-            timers.append((d, t-1))
+        pairs = get_similarity(self.prev_frame_df, self.prev_frame_img, frame_df, frame_img)
+        for (i,j) in pairs:
+            if i is None:
+                # Enter
+                if frame_df[j, "name"] == "person":
+                    # TODO find the relevant Human item (if this is a repeat person)
+                    pass
+                else:
+                    # TODO find the relevant Dish item (if this is a repeat dish)
+                    pass
+            elif j is None:
+                # Leave
+                for o in self.objects:
+                    if o.prev_index == i:
+                        o.leave()
+                        break
+            else:
+                # Stay
+                for o in self.objects:
+                    if o.prev_index == i:
+                        o.stay()
+                        break
 
 # video_capture = cv2.VideoCapture(0)
 # count = 0
