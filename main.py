@@ -6,10 +6,10 @@ import cv2
 from ML.objrec import ObjectDetector
 from ML.facerec import FaceRec
 
-load_dotenv()
-DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+# load_dotenv()
+# DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
-discord_bot = discord_shamer.DishDetectorBlocking(DISCORD_TOKEN)
+# discord_bot = discord_shamer.DishDetectorBlocking(DISCORD_TOKEN)
 facerec = FaceRec()
 objrec = ObjectDetector()
 # start main loop
@@ -37,13 +37,14 @@ while True:
 
     if is_dirty_dish_placed:
         # get name of shameful
-        people_df = obj_df[obj_df["class"] == 0]
-        bbox = [people_df["x-min"], people_df["x-max"], people_df["y_min"], people_df["y_max"]]
-        face_name = facerec.face_rec(frame[bbox[1]:bbox[3], bbox[0]:bbox[2]])
+        people_df = obj_df[obj_df["class"] == 0].iloc[0]
+        bbox = list(map(int, [people_df["xmin"], people_df["xmax"], people_df["ymin"], people_df["ymax"]]))
+        face_name = facerec.face_rec(frame[bbox[2]:bbox[3], bbox[0]:bbox[1]])
 
         # shame the shameful
+        print("SHAME! SHAME UPON", face_name)
         audio_shamer.shame()
-        discord_bot.shame()
+        # discord_bot.shame()
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
