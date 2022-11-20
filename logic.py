@@ -13,6 +13,8 @@ class Person:
         self.name = name
         self.id = discordID
 
+
+
 class Human:
     def __init__(self, xmin, ymin, xmax, ymax):
         self.location = (xmin, ymin, xmax, ymax)
@@ -20,6 +22,9 @@ class Human:
         self.dishes = []
         self.lifetime = 0
         self.deathtime = -1
+
+    def enter(self, ):
+        
 
 class Dish:
     def __init__(self, xmin, ymin, xmax, ymax):
