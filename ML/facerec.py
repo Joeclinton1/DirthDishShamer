@@ -5,7 +5,7 @@ import numpy as np
 class FaceRec():
     def __init__(self) -> None:
         self.known_face_encodings = []
-        self.known_face_names =  ["josh", "joes", "joec"]
+        self.known_face_names =  ["josh", "joes", "joec", "ming"]
         for name in self.known_face_names:
             img = face_recognition.load_image_file("../faces/{}prop.jpg".format(name))
             self.known_face_encodings.append(face_recognition.face_encodings(img)[0])
