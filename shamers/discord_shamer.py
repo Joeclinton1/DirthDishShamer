@@ -47,6 +47,9 @@ class DishDetector(discord.Client):
             txt = self.msg_queue.pop(0)
             await self.channel.send(txt)
 
+    def shame(self):
+        self.msg_queue.append("Shame, Shame, Shame")
+
 
 def DishDetectorBlocking(token, *args, **kwargs):
     cl = DishDetector(token, *args, **kwargs)

@@ -1,6 +1,4 @@
-# import cv2
-# import torch
-# import torchvision
+import cv2
 import pandas as pd
 from ML import objrec
 from ML.facerec import face_rec
@@ -121,20 +119,6 @@ class World():
                     if o.prev_index == i:
                         o.stay(frame_img)
                         break
-
-# video_capture = cv2.VideoCapture(0)
-# count = 0
-# while True:
-#     # Grab a single frame of video
-#     ret, frame = video_capture.read()
-#     # if count%4 == 0:
-#     out = model.forward(frame)
-#     out.show()
-#     # cv2.imshow("vid", frame)
-#     # count += 1
-#     #out.show()
-#     if cv2.waitKey(1) & 0xFF == ord('q'):
-#         break
 
 
 

@@ -1,20 +1,36 @@
 import os
-from bot import DishDetectorBlocking
+from shamers import discord_shamer, audio_shamer
+from logic import World
 from dotenv import load_dotenv
-import pyttsx3
-import random
+import cv2
+import torch
+import torchvision
 
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
+discord_bot = discord_shamer.DishDetectorBlocking(DISCORD_TOKEN)
+world = World()
 
-bot = DishDetectorBlocking(DISCORD_TOKEN)
+# start main loop
+video_capture = cv2.VideoCapture(0)
+count = 0
+while True:
+    # Grab a single frame of video
+    ret, frame = video_capture.read()
 
-def shoutORsiren():
-    voice = [0, 1]
-    engine = pyttsx3.init()
-    voices = engine.getProperty('voices')
-    ran = random.choice(voice)
-    engine.setProperty('voice', voices[ran].id)
-    engine.say("Shame! Shame! Dishes still remain!")
-    engine.runAndWait()
+    # if count%4 == 0:
+    obj_df = model.forward(frame)
+    obj_df.show()
+    # cv2.imshow("vid", frame)
+    # count += 1
+
+    # update world state
+    shameful_people = world.new_frame(obj_df, frame)
+
+    # shame the shameful
+    audio_shamer.shame()
+    discord_bot.shame()
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
