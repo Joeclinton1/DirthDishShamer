@@ -1,20 +1,17 @@
 import os
 from shamers import discord_shamer, audio_shamer
-from ML import facerec as frec, objrec as orec
 from logic import World
 from dotenv import load_dotenv
 import cv2
-
+from ML.objrec import ObjectDetector
+from ML.facerec import FaceRec
 
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
 discord_bot = discord_shamer.DishDetectorBlocking(DISCORD_TOKEN)
-
-# Initialise ML models
-facerec = frec.FaceRec()
-objrec = orec.ObjectDetector()
-
+facerec = FaceRec()
+objrec = ObjectDetector()
 # start main loop
 video_capture = cv2.VideoCapture(0)
 
@@ -30,7 +27,7 @@ while True:
     ret, frame = video_capture.read()
 
     # if count%4 == 0:
-    obj_df = objrec.rec_objs(frame)
+    obj_df = objrec.recognize(frame)
     obj_df.show()
     # cv2.imshow("vid", frame)
     # count += 1
