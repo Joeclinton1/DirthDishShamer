@@ -1,16 +1,7 @@
 import cv2
 import pandas as pd
-from ML import objrec
-from ML.facerec import FaceRec
 import numpy as np
 from skimage.metrics import structural_similarity
-
-
-# model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
-# # model.load_weights("weightdirectory")
-# # weights = ResNet50_Weights.DEFAULT
-# # model = resnet50(weights=weights)
-
 
 def crop(img, bbox):
     # x1, x2, y1, y2 = bbox[0], bbox[2], bbox[1], bbox[3]

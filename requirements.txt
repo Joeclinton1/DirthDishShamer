@@ -1,0 +1,9 @@
+python-dotenv
+opencv-python
+pandas
+numpy
+scikit-image
+face_recognition
+torch
+discord.py
+pyttsx3

@@ -3,3 +3,4 @@
 train.txt
 val.txt
 __pycache__/
+.idea/

@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 # If you use the non-blocking version then you need to acquire the ready_lock before you can use it again
 
 
-# TODO these properly
+# TODO get these in a non-hard-coded way
 SERVER_TARGET = 1043610399465029713
 CHANNEL_TARGET = 1043619041207660668
 USER_TARGET = 187570697290252288
