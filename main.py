@@ -1,20 +1,45 @@
 import os
-from bot import DishDetectorBlocking
+from shamers import discord_shamer, audio_shamer
+from logic import World
 from dotenv import load_dotenv
-import pyttsx3
-import random
+import cv2
+
 
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
+discord_bot = discord_shamer.DishDetectorBlocking(DISCORD_TOKEN)
+facerec = FaceRec()
+# start main loop
+video_capture = cv2.VideoCapture(0)
 
-bot = DishDetectorBlocking(DISCORD_TOKEN)
+# Grab first frame inorder to get the table
+ret, frame = video_capture.read()
+world = World()
 
-def shoutORsiren():
-    voice = [0, 1]
-    engine = pyttsx3.init()
-    voices = engine.getProperty('voices')
-    ran = random.choice(voice)
-    engine.setProperty('voice', voices[ran].id)
-    engine.say("Shame! Shame! Dishes still remain!")
-    engine.runAndWait()
+count = 0
+while True:
+    # Grab a single frame of video
+    ret, frame = video_capture.read()
+
+    # if count%4 == 0:
+    obj_df = model.forward(frame)
+    obj_df.show()
+    # cv2.imshow("vid", frame)
+    # count += 1
+
+    # update world state
+    is_dirty_dish_placed = world.new_frame(obj_df, frame)
+
+    if is_dirty_dish_placed:
+        # get name of shameful
+        people_df = obj_df[obj_df["class"] == 0]
+        bbox = [people_df["x-min"], people_df["x-max"], people_df["y_min"], people_df["y_max"]]
+        face_name = facerec.face_rec(frame[bbox[1]:bbox[3], bbox[0]:bbox[2]])
+
+        # shame the shameful
+        audio_shamer.shame()
+        discord_bot.shame()
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
