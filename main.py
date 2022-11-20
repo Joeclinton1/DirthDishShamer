@@ -27,8 +27,8 @@ while True:
     ret, frame = video_capture.read()
 
     # if count%4 == 0:
-    obj_df = objrec.recognize(frame)
-    obj_df.show()
+    obj_df = objrec.recognize(frame, True)
+    # obj_df.show()
     # cv2.imshow("vid", frame)
     # count += 1
 

@@ -57,6 +57,7 @@ class World():
         self.table = extract_table_contour(frame)
 
     def new_frame(self, objs: pd.DataFrame, frame_img):
+        print(objs)
         dishes_df = objs[objs["class"] != 0]
 
         # increment limbo for all dishes

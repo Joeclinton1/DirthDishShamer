@@ -7,3 +7,9 @@ face_recognition
 torch
 discord.py
 pyttsx3
+requests
+psutil
+torchvision
+PyYAML
+tqdm
+seaborn
