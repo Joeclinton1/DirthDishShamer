@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from skimage.metrics import structural_similarity
 
-TBL_THRESHOLD = 300
+TBL_THRESHOLD = 200
 
 def crop(img, bbox):
     # x1, x2, y1, y2 = bbox[0], bbox[2], bbox[1], bbox[3]
@@ -32,10 +32,6 @@ def get_similarity(dish, dishes2):
 
 def obj_in_table_region(obj, table, simple=False):
     if simple:
-        if obj.pos[1] > TBL_THRESHOLD:
-            print("In table")
-        else:
-            print("Not in table")
         return obj.pos[1] > TBL_THRESHOLD
     else:
         return cv2.pointPolygonTest(table, obj.pos, False)
@@ -78,7 +74,7 @@ class World():
         for _, dish_df in dishes_df.iterrows():
             dish_bbox = list(map(int,[dish_df["xmin"], dish_df["xmax"], dish_df["ymin"], dish_df["ymax"]]))
             dish = Obj(dish_bbox, frame_img)
-            if not obj_in_table_region(dish, self.table):
+            if not obj_in_table_region(dish, self.table, simple=True):
                 continue
 
             for dishes2 in self.past_dishes[::-1]:
