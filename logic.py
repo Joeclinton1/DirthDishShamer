@@ -71,9 +71,25 @@ def attempt_ID(image, human):
             if face_name != "unknown":
                 human.name = face_name
 
-def get_similarity(df1, img1, df2, img2):
-    # dummy function for Clinton's method
-    pass
+def get_similarity(obj, img1, objs, img2):
+    #set weights
+    w1, w2, w3 = 0.5, 0.3, 0.2
+
+    similarity = [0]*objs.shape[1]
+    for i,obj2 in enumerate(objs):
+        #calc similarity
+        bboxs = [get_bbox_from_df(df) for df in [obj,obj2]]
+        pos1, pos2 = [((bb[0] + bb[1]) / 2, (bb[2] + bb[3]) / 2) for bb in bboxs]
+        area1, area2 = [(bb[1]-bb[0])*(bb[3]-bb[2]) for bb in bboxs]
+        ssim = structural_similarity(crop(img1, bboxs[0]), crop(img2, bboxs[1]))
+        max_pos= (img1.shape[1]**2+img1.shape[2])**0.5
+        max_area= img1.shape[0]*img1.shape[1]
+        max_ssim = 1
+
+        diff = (pos2-pos1)/max_pos*w1+(area2-area1)/max_area*w2+(1-ssim/max_ssim)*w3
+        similarity[i] = 1-diff/(w1+w2+w3)
+    return similarity
+
 
 class World():
     def __init__(self):
