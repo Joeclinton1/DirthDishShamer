@@ -23,42 +23,15 @@ class Person:
 
 
 class Human:
-    def __init__(self, xmin, ymin, xmax, ymax, i):
+    def __init__(self, xmin, ymin, xmax, ymax):
         self.location = (xmin, ymin, xmax, ymax)
         self.identity = None
         self.dishes = []
-        self.lifetime = 0
-        self.deathtime = -1
-        self.prev_index = i
-
-    def enter(self):
-        pass
-
-    def stay(self):
-        pass
-
-    def leave(self):
-        pass
-
-    def enter(self, ):
-        
 
 class Dish:
-    def __init__(self, xmin, ymin, xmax, ymax, i):
+    def __init__(self, xmin, ymin, xmax, ymax):
         self.location = (xmin, ymin, xmax, ymax)
         self.bringer = None
-        self.lifetime = 0
-        self.deathtime = -1
-        self.prev_index = i
-
-    def enter(self):
-        pass
-
-    def stay(self):
-        pass
-
-    def leave(self):
-        pass
 
 def attempt_ID(image, human):
     local = human.location
@@ -103,7 +76,7 @@ class World():
                 # Stay
                 for o in self.objects:
                     if o.prev_index == i:
-                        o.stay()
+                        o.stay(frame_img)
                         break
 
 # video_capture = cv2.VideoCapture(0)
