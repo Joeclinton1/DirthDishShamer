@@ -62,7 +62,7 @@ class World():
         self.table = extract_table_contour(frame)
 
     def new_frame(self, objs: pd.DataFrame, frame_img):
-        dishes_df = objs[objs["class"] != 0]
+        dishes_df = objs[~objs["class"].isin([0, 60])]
 
         # increment limbo for all dishes
         # remove the dish if it has been in limbo for 3 or more frames
